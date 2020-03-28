@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Client {
     
@@ -80,7 +82,7 @@ public class Client {
                 try {
                     
                     String msg = input.readUTF();
-                       if (msg.equals("le pseudo est déjà pris")){
+                       if (msg.equals("le pseudo est déjà pris")||msg.contains("PseudoError")){
                            System.out.println("Le pseudo est déjà pris");
                            ErrorPseudo=true;
                          //sendPseudo();
@@ -100,10 +102,21 @@ public class Client {
                   
                 }
                 catch (IOException e) {
-                    e.printStackTrace();
+                    try {
+                        
+                        System.out.println("Arret de communication avec le serveur");
+                        e.printStackTrace();
+                        running = false;
+                        input.close();
+                        output.close();
+                        socket.close();
+                    } catch (IOException ex) {
+                        
+                    }
                 }
             }
         });
+        
         readMessage.start();
     }
 

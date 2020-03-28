@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +36,7 @@ public final class ClientHandler implements Runnable {
         try {
             String receivedMsg;
             while (true) {
+                
                 byte messageType = input.readByte();
                 receivedMsg = input.readUTF();
                 
@@ -51,7 +54,7 @@ public final class ClientHandler implements Runnable {
                          this.pseudo = receivedMsg;
                          }
                          else if ( existe==true || this.pseudo=="PseudoError" ) {
-                             System.out.println("normalement il a envoyé l'erreur");
+                             //System.out.println("normalement il a envoyé l'erreur");
                              this.pseudo="PseudoError";
                              this.output.writeUTF("le pseudo est déjà pris");
                              //this.output.flush();
@@ -97,19 +100,36 @@ public final class ClientHandler implements Runnable {
         }
         catch (IOException e) {
             e.printStackTrace();
+                    ownerServer.getUserContainer().forEach(user-> {
+                        try {
+                            user.output.writeUTF(pseudo + " est parti du chat");
+                        }
+                        catch (IOException a) {
+                            a.printStackTrace();
+                        }
+                    });
+            try {
+                this.closeConnection();
+            } catch (IOException ex) {
+                
+            }
+                    ownerServer.disconnectUser(this);
+                    //ownerServer.getUserContainer().remove(this);
+                    
+            
         }
     }
 
     private void closeConnection() throws IOException {
-        System.out.println("client.Client " + this.socket + " sends exit...");
-        System.out.println("Closing this connection.");
+        System.out.println(this.socket + " sends exit...");
+        System.out.println("Fermeture de la connexion");
 
         this.isLoggedIn = false;
         input.close();
         output.close();
         this.socket.close();
 
-        System.out.println("Connection closed for:" + pseudo);
+        System.out.println("Connexion fermé:" + pseudo);
     }
     
     private void sendMessage(String msgToSend) throws IOException {
@@ -119,7 +139,7 @@ public final class ClientHandler implements Runnable {
         }
     }
     
-
+//a implementer
     private void sendToOne(String msgToSend, String recipient) throws IOException {
         
         for (ClientHandler user : ownerServer.getUserContainer()) {
@@ -131,6 +151,8 @@ public final class ClientHandler implements Runnable {
         output.writeUTF(recipient +": doesnt exist !");
 
     }
+    
+   
 
   
     
