@@ -100,7 +100,7 @@ public final class ClientHandler implements Runnable {
                     
                     ownerServer.getUserContainer().forEach(user-> {
                         try {
-                            user.output.writeUTF(pseudo + " ...a quitté la conversation");
+                            user.output.writeUTF(pseudo + " a quitté la conversation");
                         }
                         catch (IOException e) {
                             e.printStackTrace();
@@ -125,7 +125,7 @@ public final class ClientHandler implements Runnable {
             e.printStackTrace();
                     ownerServer.getUserContainer().forEach(user-> {
                         try {
-                            user.output.writeUTF(pseudo + "a quitté la conversation");
+                            user.output.writeUTF(pseudo + " a quitté la conversation");
                         }
                         catch (IOException a) {
                             a.printStackTrace();

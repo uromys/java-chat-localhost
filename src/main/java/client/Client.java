@@ -95,7 +95,12 @@ public class Client {
             while (running) {
                 try {   
                     if(ErrorPseudo){
-                        sendPseudo();   
+                        sendPseudo();
+                        try {
+                            TimeUnit.SECONDS.sleep(1);//le temps que le serveur renvoie la réponse, sinon le thread retourne dans sendPseudo meme si le pseudo est bon
+                        } catch (InterruptedException ex) {
+                           
+                        }
                     }else {
                     
                     //System.out.print(pseudo+": blabla ");
