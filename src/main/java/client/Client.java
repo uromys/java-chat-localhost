@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,6 +35,28 @@ public class Client {
         sendPseudo();
 
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param Pseudo
+     * @throws IOException 
+     * Ce constructeur prend simplement le pseudo en paramètres en cas d'interruption pour la recreation d'un socket 
+     */
+    
+    public Client(String Pseudo) throws IOException{
+            pseudo=Pseudo;
+            scanner = new Scanner(System.in);
+        socket = new Socket("localhost", 6666);
+        input = new DataInputStream(socket.getInputStream());
+        output = new DataOutputStream(socket.getOutputStream());
+        ErrorPseudo=false;
+        //sendPseudo();
+        
+    }
+    
+   
     /**
      * 
      * @throws IOException 
@@ -50,10 +73,18 @@ public class Client {
        pseudo = in.nextLine();
         output.writeByte(1);
         output.writeUTF(pseudo);
-        //output.flush();
+        output.flush();
  
         
     }
+    
+    private void sendPseudoAfterServerDc() throws IOException{
+        ErrorPseudo=false;
+        output.writeByte(1);
+        output.writeUTF(pseudo);
+        output.flush();
+    }
+    
 /**
  * envoie d'un message, Exit declence l'arret des communications ( sensible a la case )
  * 
@@ -78,10 +109,11 @@ public class Client {
                     // write on the output stream
                      output.writeByte(2);
                     output.writeUTF(msg);
+                    output.flush();
                 }
                 }
                 catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                    // System.out.println("finally closed");
                 }
             }
@@ -96,21 +128,29 @@ public class Client {
      * Thread de reception
      */
     public void readMessage() {
-        Thread readMessage = new Thread(() ->
+        Thread readMessage;
+        readMessage = new Thread(() ->
         {
             while (running) {
                 try {
                     
                     String msg = input.readUTF();
-                       if (msg.equals("le pseudo est déjà pris")||msg.contains("PseudoError")){
-                           System.out.println("Le pseudo est déjà pris");
-                           ErrorPseudo=true;
-                           
-                         //sendPseudo();
-
-                     }else{
-                            System.out.println(msg); 
-                       }
+                    
+                    
+                    boolean Fautpasprint=false;
+                    if(msg.contains("PseudoError")){
+                        Fautpasprint=true;
+                    }
+                    //si on ne fait pas ça, l'utilisateurs et tout les utilisateurs recoivent  un message de PseudoError 
+                    // avec son futur pseudo ( qui marche )
+                    
+                    if (msg.equals("le pseudo est déjà pris")){
+                        System.out.println("Le pseudo est déjà pris");
+                        ErrorPseudo=true;
+                  
+                    }else if (Fautpasprint==false){
+                        System.out.println(msg);
+                    }
                     if (msg.equals("Exit")) {
                         running = false; 
                         input.close();
@@ -131,6 +171,32 @@ public class Client {
                         input.close();
                         output.close();
                         socket.close();
+                        
+                        while(true){
+                            try{
+                                Client NewClient=new Client(this.pseudo);
+                                
+                                this.finalize();
+                                //
+                                System.out.println("reprise connexion avec le serveur");
+                                NewClient.sendPseudoAfterServerDc();
+                                NewClient.readMessage();
+                                NewClient.sendMessage();
+                                System.out.println("Appuyer sur entrée  pour reprendre la conversation");
+                                break;
+                            }catch (IOException exed){
+                                //reconnecte failed
+                                try{
+                                    TimeUnit.SECONDS.sleep(7);// on retente dans 7 secondes 
+                                }catch(InterruptedException ie){
+                                    //interrupted
+                                }
+                                    
+                            } catch (Throwable ex) {
+                                
+                            }
+                        }
+                        
                     } catch (IOException ex) {
                         
                     }
