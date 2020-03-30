@@ -1,0 +1,13 @@
+-classpath '/home/anael/NetBeansProjects/multithread/build/classes/java/main:/home/anael/NetBeansProjects/multithread/build/resources/main'
+-d '/home/anael/NetBeansProjects/multithread/build/docs/javadoc'
+-doctitle 'multithread API'
+-notimestamp 
+-quiet 
+-windowtitle 'multithread API'
+'/home/anael/NetBeansProjects/multithread/src/main/java/server/MainServer.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/server/Server.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/server/ClientHandler.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/client/ClientMain.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/client/Client.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/multithread/Main.java'
+'/home/anael/NetBeansProjects/multithread/src/main/java/utils/Utils.java'

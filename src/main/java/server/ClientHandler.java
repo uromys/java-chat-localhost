@@ -10,7 +10,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ *Classe créé a chaque fois qu'un client se connecte par la classe Server, est stocké dans un set 
+ * 
+ * 
+ * 
  * @author anael
  */
 public final class ClientHandler implements Runnable {
@@ -31,6 +34,13 @@ public final class ClientHandler implements Runnable {
         output = new DataOutputStream(socket.getOutputStream());
     }
 
+    
+    /**
+     * Run  a deux comportements : lorsque le bit est a 1 , le message reçu correspond a l'envoie d'un pseudo
+     * 
+     * 2  le message contenu est soit un message a envoyé à un destinataire ( ou a tout les destinataires ) ou 
+     * le serveur doit renvoyer des informations( liste des utilisateurs actuellement connecté  par exemple ) 
+     */
     @Override
     public void run() {
         try {
@@ -42,18 +52,19 @@ public final class ClientHandler implements Runnable {
                 
                 //pour savoir le type de message que l'on viens de recevoir
                 if(messageType == 1){
-                    System.out.println("ntm+ " + receivedMsg);
                     boolean existe=false;
                      for (ClientHandler user : ownerServer.getUserContainer()) {
-                         System.out.println("test "+user.pseudo);
+                         //System.out.println("test "+user.pseudo);
                          if(user.pseudo.equals(receivedMsg) ) {// le pseudo existe déjà
                               existe=true;
                          }
                      }
                          if (existe==false){
                          this.pseudo = receivedMsg;
+                         this.output.writeUTF("Bienvenu "+this.pseudo);
                          }
-                         else if ( existe==true || this.pseudo=="PseudoError" ) {
+                         //|| this.pseudo=="PseudoError"
+                         else if ( existe==true  ) {
                              //System.out.println("normalement il a envoyé l'erreur");
                              this.pseudo="PseudoError";
                              this.output.writeUTF("le pseudo est déjà pris");
@@ -67,9 +78,21 @@ public final class ClientHandler implements Runnable {
                 if(messageType==2){
                 System.out.println(receivedMsg);
                 
-                if(Utils.fonctionUtile.chainControl(receivedMsg)){ //si le message reçu a un comportement specifique 
+                
+                
+                
+                
+                
+                if(Utils.fonctionUtile.chainControl(receivedMsg)){ //si le message reçu n'a  pas un comportement specifique 
                 sendMessage(receivedMsg);
                 }
+                
+                if(receivedMsg.contains("@")){
+                    String[] arrayOfMsg=receivedMsg.split("@",2); // on split que deux fois 
+                    sendToOne(arrayOfMsg[1],arrayOfMsg[0]);
+                    
+                }
+                
                 //TODO  LES STRING "CONSTANT" fait une class de constant static
                 if (receivedMsg.equals(Utils.EXIT)) {
                     output.writeUTF("Exit"); 
@@ -77,7 +100,7 @@ public final class ClientHandler implements Runnable {
                     
                     ownerServer.getUserContainer().forEach(user-> {
                         try {
-                            user.output.writeUTF(pseudo + " ...is quitting chat");
+                            user.output.writeUTF(pseudo + " ...a quitté la conversation");
                         }
                         catch (IOException e) {
                             e.printStackTrace();
@@ -87,12 +110,12 @@ public final class ClientHandler implements Runnable {
                     ownerServer.disconnectUser(this);
                     //ownerServer.getUserContainer().remove(this);
                     break;
-                } else if (receivedMsg.equals("list users")) {
+                } else if (receivedMsg.equals(Utils.CONNECTE)) {
                     String connectedUsers = ownerServer.getConnectedUsers();
                     output.writeUTF(connectedUsers);
                     continue;
-                } else if (receivedMsg.equals("my name")) {
-                    output.writeUTF("your name is: " + pseudo);
+                } else if (receivedMsg.equals(Utils.QUISUISJE)) {
+                    output.writeUTF("ton nom est : " + pseudo);
                     continue;
                 }
             }
@@ -102,7 +125,7 @@ public final class ClientHandler implements Runnable {
             e.printStackTrace();
                     ownerServer.getUserContainer().forEach(user-> {
                         try {
-                            user.output.writeUTF(pseudo + " est parti du chat");
+                            user.output.writeUTF(pseudo + "a quitté la conversation");
                         }
                         catch (IOException a) {
                             a.printStackTrace();
@@ -140,16 +163,16 @@ public final class ClientHandler implements Runnable {
     }
     
 //a implementer
-    private void sendToOne(String msgToSend, String recipient) throws IOException {
+    private boolean sendToOne(String msgToSend, String recipient) throws IOException {
         
         for (ClientHandler user : ownerServer.getUserContainer()) {
             if (user.pseudo.equals(recipient)) {
-                user.output.writeUTF(this.pseudo + " : " + msgToSend);
-                return;
+                user.output.writeUTF(this.pseudo + " (private ): " + msgToSend);
+                return true;
             }
         }
         output.writeUTF(recipient +": doesnt exist !");
-
+        return false;
     }
     
    

@@ -8,6 +8,11 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+Client est la classe lancé pour  la parti client de la communication .
+* Il est constitué de deux threads, l'un pour recevoir les messages en continu d'autres client et l'autre pour en envoyer .
+* 
+*/
 public class Client {
     
     private boolean running = true;
@@ -29,7 +34,15 @@ public class Client {
         sendPseudo();
 
     }
-    
+    /**
+     * 
+     * @throws IOException 
+     * 
+     * 
+     * Envoyer a chaque début de connexion le pseudo doit être unique .La parti serveur 
+     * reconnait que cela constitue un message d'envoie de Pseudo grâce au bit envoyé(=1)
+     * Dans les faits ( non visible a l'utilisateurs) lorsque celui-ci  rentre un mauvais pseudo ,on lui attribue le pseudo "PseudoError" qui permet de gérer ce cas,jusqu'a ce qu'il rentre un pseudo valide 
+     */
     private void sendPseudo() throws IOException{
         ErrorPseudo=false;
         System.out.println("Entrez un pseudo");
@@ -37,11 +50,14 @@ public class Client {
        pseudo = in.nextLine();
         output.writeByte(1);
         output.writeUTF(pseudo);
-        output.flush();
+        //output.flush();
  
         
     }
-
+/**
+ * envoie d'un message, Exit declence l'arret des communications ( sensible a la case )
+ * 
+ */
     public void sendMessage()  {
         Thread sendMessage = new Thread(() ->
         {
@@ -75,6 +91,10 @@ public class Client {
         sendMessage.start();
     }
 
+    /**
+     * 
+     * Thread de reception
+     */
     public void readMessage() {
         Thread readMessage = new Thread(() ->
         {
@@ -85,6 +105,7 @@ public class Client {
                        if (msg.equals("le pseudo est déjà pris")||msg.contains("PseudoError")){
                            System.out.println("Le pseudo est déjà pris");
                            ErrorPseudo=true;
+                           
                          //sendPseudo();
 
                      }else{
